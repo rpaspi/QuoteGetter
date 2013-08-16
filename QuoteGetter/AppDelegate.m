@@ -7,18 +7,26 @@
 //
 
 #import "AppDelegate.h"
+#import <dispatch/dispatch.h>
 
-#define TEXT1 1
-#define TEXT2 2
+#define STOCKSYMBOL1 1
+#define STOCKSYMBOL2 2
+#define STOCKQUOTE1  3
+#define STOCKQUOTE2  4
 
 @interface AppDelegate () {
     id updateHandler;
 }
 @end
 
-@implementation AppDelegate
+@implementation AppDelegate {
+    dispatch_queue_t backgroundQueue;
+}
 
 @synthesize targetWatch = _targetWatch;
+@synthesize apple = _apple;
+@synthesize microsoft = _microsoft;
+@synthesize google;
 
 - (void)setTargetWatch:(PBWatch*)watch {
     _targetWatch = watch;
@@ -61,10 +69,28 @@
     }
     
     @try {
+        if (self.apple) {
+            [self.apple update];
+            NSLog(@"Altes Apple benutzt");
+        } else {
+            _apple = [[Quotes alloc] initWithSymbol:@"AAPL"];
+            [self.apple update];
+            NSLog(@"Apple neu erstellt");
+        }
+        if (self.google) {
+            [self.google update];
+            NSLog(@"Altes Google benutzt");
+        } else {
+            self.google = [[Quotes alloc] initWithSymbol:@"GOOG"];
+            [self.google update];
+            NSLog(@"Google neu erstellt");
+        }
         // Send data to watch:
-        NSNumber *text1key = @(TEXT1);
-        NSNumber *text2key = @(TEXT2);
-        NSDictionary *update = @{ text1key:@"Apple", text2key:@"Google" };
+        NSNumber *symbol1key = @(STOCKSYMBOL1);
+        NSNumber *symbol2key = @(STOCKSYMBOL2);
+        NSNumber *quote1key = @(STOCKQUOTE1);
+        NSNumber *quote2key = @(STOCKQUOTE2);
+        NSDictionary *update = @{ symbol1key:self.apple.symbol, symbol2key:self.google.symbol, quote1key:[self.apple getQuoteString], quote2key:[self.google getQuoteString]};
         [self.targetWatch appMessagesPushUpdate:update onSent:^(PBWatch *watch, NSDictionary *update, NSError *error) {
             //NSString *message = error ? [error localizedDescription] : @"Update sent!";
             //[[[UIAlertView alloc] initWithTitle:nil message:message delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
@@ -87,6 +113,12 @@
     [self setTargetWatch:[[PBPebbleCentral defaultCentral] lastConnectedWatch]];
 
     // Override point for customization after application launch.
+    backgroundQueue = dispatch_queue_create("de.rpaspi.queue", NULL);
+    dispatch_async(backgroundQueue, ^{
+        _apple = [[Quotes alloc] initWithSymbol:@"AAPL"];
+        self.microsoft = [[Quotes alloc] initWithSymbol:@"MSFT"];
+        self.google = [[Quotes alloc] initWithSymbol:@"GOOG"];
+    });
     return YES;
 }
 							

@@ -19,14 +19,18 @@
 @synthesize oldTag = _oldTag;
 @synthesize parser = _parser;
 
-- (void) initWithSymbol:(NSString*) quoteSymbol {
-    self.currentTag = @"";
-    self.oldTag = @"";
-    self.last = @(0);
-    self.change = @(0);
-    self.percentageChange = @(0);
-    self.symbol = [NSString stringWithString:quoteSymbol];
-    [self update];
+- (Quotes*) initWithSymbol:(NSString*) quoteSymbol {
+    self = [super init];
+    if (self != nil) {
+        self.currentTag = @"";
+        self.oldTag = @"";
+        self.last = @(0);
+        self.change = @(0);
+        self.percentageChange = @(0);
+        self.symbol = [NSString stringWithString:quoteSymbol];
+        [self update];
+    }
+    return self;
 }
 
 - (void) update {
@@ -48,6 +52,11 @@
         }
         [self.parser parse];
     }
+}
+
+- (NSString*) getQuoteString {
+    NSString *quoteString = [NSString stringWithFormat:@"%.2f %+.2f", [self.last floatValue], [self.change floatValue]];
+    return quoteString;
 }
 
 // Parser Delegate Methods

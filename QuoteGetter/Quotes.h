@@ -19,9 +19,10 @@
 @property (nonatomic, strong) NSXMLParser *parser;
 
 - (void) update;
-- (void) initWithSymbol:(NSString*) quoteSymbol;
+- (Quotes*) initWithSymbol:(NSString*) quoteSymbol;
 
 // Parser Delegate Methods
 - (void)parser:(NSXMLParser *)parser didStartElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qualifiedName attributes:(NSDictionary *)attributeDict;
 - (void)parser:(NSXMLParser *)parser foundCharacters:(NSString *)string;
+- (NSString*) getQuoteString;
 @end
