@@ -31,6 +31,7 @@
 		A121FF4617BAA84400DA38A4 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A121FF3417BAA7F700DA38A4 /* libz.dylib */; };
 		A121FF4717BAA84400DA38A4 /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A121FF3517BAA7F700DA38A4 /* MessageUI.framework */; };
 		A121FF4917BAA93900DA38A4 /* PebbleVendor.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A121FF4817BAA93900DA38A4 /* PebbleVendor.framework */; };
+		A1AC296D17BD6D4A000828C5 /* PebbleKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1AC296C17BD6D4A000828C5 /* PebbleKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -69,6 +70,7 @@
 		A121FF3417BAA7F700DA38A4 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		A121FF3517BAA7F700DA38A4 /* MessageUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MessageUI.framework; path = System/Library/Frameworks/MessageUI.framework; sourceTree = SDKROOT; };
 		A121FF4817BAA93900DA38A4 /* PebbleVendor.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PebbleVendor.framework; path = "../../../Pebble/pebble-dev/PebbleKit-v1.1/iOS/PebbleVendor.framework"; sourceTree = "<group>"; };
+		A1AC296C17BD6D4A000828C5 /* PebbleKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PebbleKit.framework; path = "../../../Pebble/pebble-dev/PebbleKit-v1.1/iOS/PebbleKit.framework"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,6 +88,7 @@
 				A121FEFD17BAA6D700DA38A4 /* Foundation.framework in Frameworks */,
 				A121FEFB17BAA6D700DA38A4 /* UIKit.framework in Frameworks */,
 				A121FF4917BAA93900DA38A4 /* PebbleVendor.framework in Frameworks */,
+				A1AC296D17BD6D4A000828C5 /* PebbleKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -95,6 +98,7 @@
 		A121FEEE17BAA6D700DA38A4 = {
 			isa = PBXGroup;
 			children = (
+				A1AC296C17BD6D4A000828C5 /* PebbleKit.framework */,
 				A121FF1D17BAA78F00DA38A4 /* Stockquotes */,
 				A121FF0017BAA6D700DA38A4 /* QuoteGetter */,
 				A121FEF917BAA6D700DA38A4 /* Frameworks */,
@@ -340,6 +344,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "QuoteGetter/QuoteGetter-Prefix.pch";
 				INFOPLIST_FILE = "QuoteGetter/QuoteGetter-Info.plist";
+				OTHER_CFLAGS = "-I/usr/include/libxml2";
 				OTHER_LDFLAGS = (
 					"-lxml2",
 					"-ObjC",
@@ -359,6 +364,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "QuoteGetter/QuoteGetter-Prefix.pch";
 				INFOPLIST_FILE = "QuoteGetter/QuoteGetter-Info.plist";
+				OTHER_CFLAGS = (
+					"-DNS_BLOCK_ASSERTIONS=1",
+					"-I/usr/include/libxml2",
+				);
 				OTHER_LDFLAGS = (
 					"-lxml2",
 					"-ObjC",
@@ -387,6 +396,7 @@
 				A121FF1C17BAA6D700DA38A4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
