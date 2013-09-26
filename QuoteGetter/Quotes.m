@@ -28,35 +28,44 @@
         self.change = @(0);
         self.percentageChange = @(0);
         self.symbol = [NSString stringWithString:quoteSymbol];
+        if ([self.symbol isEqualToString:@"NONE"]) {
+            self.symbol = @"";
+        }
         [self update];
     }
     return self;
 }
 
 - (void) update {
-    StockQuoteSoap12Binding *binding = [[StockQuoteSoap12Binding alloc] initWithAddress:@"http://www.webservicex.net/stockquote.asmx?WSDL"];
-    StockQuoteSvc_GetQuote *parameters = [[StockQuoteSvc_GetQuote alloc] init];
-    parameters.symbol = self.symbol;
-    StockQuoteSoap12BindingResponse *response = [[StockQuoteSoap12BindingResponse alloc] init];
-    //StockQuoteSvc_GetQuoteResponse
-    response = [binding GetQuoteUsingParameters:parameters];
-    NSArray *ergebnisse = [NSArray arrayWithArray:response.bodyParts];
-    if ([ergebnisse count] > 0) {
-        NSString *quoteResult = [NSString stringWithString:((StockQuoteSvc_GetQuoteResponse*)ergebnisse[0]).GetQuoteResult];
-        if (!_parser) {
-            self.parser =[[NSXMLParser alloc] initWithData:[quoteResult dataUsingEncoding:NSUTF8StringEncoding]];
-            [self.parser setDelegate:self];
-        } else {
-            [self.parser abortParsing];
-            self.parser = [self.parser initWithData:[quoteResult dataUsingEncoding:NSUTF8StringEncoding]];
+    if (![self.symbol isEqualToString:@""]) {
+        StockQuoteSoap12Binding *binding = [[StockQuoteSoap12Binding alloc] initWithAddress:@"http://www.webservicex.net/stockquote.asmx?WSDL"];
+        StockQuoteSvc_GetQuote *parameters = [[StockQuoteSvc_GetQuote alloc] init];
+        parameters.symbol = self.symbol;
+        StockQuoteSoap12BindingResponse *response = [[StockQuoteSoap12BindingResponse alloc] init];
+        //StockQuoteSvc_GetQuoteResponse
+        response = [binding GetQuoteUsingParameters:parameters];
+        NSArray *ergebnisse = [NSArray arrayWithArray:response.bodyParts];
+        if ([ergebnisse count] > 0) {
+            NSString *quoteResult = [NSString stringWithString:((StockQuoteSvc_GetQuoteResponse*)ergebnisse[0]).GetQuoteResult];
+            if (!_parser) {
+                self.parser =[[NSXMLParser alloc] initWithData:[quoteResult dataUsingEncoding:NSUTF8StringEncoding]];
+                [self.parser setDelegate:self];
+            } else {
+                [self.parser abortParsing];
+                self.parser = [self.parser initWithData:[quoteResult dataUsingEncoding:NSUTF8StringEncoding]];
+            }
+            [self.parser parse];
         }
-        [self.parser parse];
     }
 }
 
 - (NSString*) getQuoteString {
-    NSString *quoteString = [NSString stringWithFormat:@"%.2f %+.2f", [self.last floatValue], [self.change floatValue]];
-    return quoteString;
+    if ([self.symbol isEqualToString:@""]) {
+        return @"";
+    } else {
+        NSString *quoteString = [NSString stringWithFormat:@"%.2f %+.2f", [self.last floatValue], [self.change floatValue]];
+        return quoteString;
+    }
 }
 
 // Parser Delegate Methods
