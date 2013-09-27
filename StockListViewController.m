@@ -12,6 +12,7 @@
 @interface StockListViewController () {
     NSArray *aktien;
     NSInteger selectedRow;
+    NSString *selectedSymbol;
 }
 @end
 
@@ -25,7 +26,7 @@
 @synthesize pressedSlot = _pressedSlot;
 @synthesize delegate = _delegate;
 @synthesize filteredStockList = _filteredStockList;
-@synthesize searchBar = _searchBar;
+@synthesize searchBar;
 
 - (id)initWithStyle:(UITableViewStyle)style
 {
@@ -57,19 +58,11 @@
     if (self.selectOne) {
         UIButton *pressedButton = self.delegate.slots[self.pressedSlot-1];
         NSString *preselectedSymbol = pressedButton.currentTitle;
-        if ([preselectedSymbol isEqualToString:@"NONE"]) {
-            selectedRow = 0;
-        } else {
-            int i = 1;
-            for (StockInfo* aktie in aktien) {
-                if ([aktie.symbol isEqualToString:preselectedSymbol]) {
-                    selectedRow = i;
-                    break;
-                }
-                i++;
-            }
-        }
+        selectedSymbol = preselectedSymbol;
     }
+    // Initialize the filteredStockList with a capacity equal to the aktien-array's capacity
+    self.filteredStockList = [NSMutableArray arrayWithCapacity:[aktien count]];
+
     [self.tableView reloadData];
 }
 
@@ -90,39 +83,63 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     // Return the number of rows in the section.
-    if (self.selectOne) {
-        return [aktien count]+1;
+    if (tableView != self.searchDisplayController.searchResultsTableView) {
+        if (self.selectOne) {
+            return [aktien count]+1;
+        } else {
+            return [aktien count];
+        }
     } else {
-        return [aktien count];
+        return [self.filteredStockList count];
     }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     static NSString *CellIdentifier = @"Cell";
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    //UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
     }
     
     // Configure the cell...
-    if (self.selectOne) {
-        if (indexPath.row == 0) {
-            cell.textLabel.text = @"None";
-        } else {
-            StockInfo *aktie = [aktien objectAtIndex:(indexPath.row - 1)];
-            cell.textLabel.text = aktie.symbol;
-        }
-        if (indexPath.row == selectedRow) {
-            cell.accessoryType = UITableViewCellAccessoryCheckmark;
-        } else {
-            cell.accessoryType = UITableViewCellAccessoryNone;
-        }
-    } else {
-        StockInfo *aktie = [aktien objectAtIndex:indexPath.row];
-        cell.textLabel.text = aktie.symbol;
-    }
+    if (tableView != self.searchDisplayController.searchResultsTableView) {
 
+        if (self.selectOne) {
+            if (indexPath.row == 0) {
+                cell.textLabel.text = @"None";
+            } else {
+                StockInfo *aktie = [aktien objectAtIndex:(indexPath.row - 1)];
+                cell.textLabel.text = aktie.symbol;
+                NSString *detail = aktie.name;
+                cell.detailTextLabel.text = detail;
+            }
+            if ([cell.textLabel.text isEqualToString:selectedSymbol]) {
+                cell.accessoryType = UITableViewCellAccessoryCheckmark;
+            } else {
+                cell.accessoryType = UITableViewCellAccessoryNone;
+            }
+        } else {
+            StockInfo *aktie = [aktien objectAtIndex:indexPath.row];
+            cell.textLabel.text = aktie.symbol;
+            cell.detailTextLabel.text = aktie.name;
+        }
+
+    } else {
+        NSLog(@"Cell updaete in search");
+        StockInfo *aktie = [self.filteredStockList objectAtIndex:indexPath.row];
+        cell.textLabel.text = aktie.symbol;
+        cell.detailTextLabel.text = aktie.name;
+        if (self.selectOne) {
+            if ([aktie.symbol isEqualToString:selectedSymbol]) {
+                cell.accessoryType = UITableViewCellAccessoryCheckmark;
+            } else {
+                cell.accessoryType = UITableViewCellAccessoryNone;
+            }
+            NSLog(@"selected Symbol: %@", selectedSymbol);
+        }
+    }
     return cell;
 }
 
@@ -180,23 +197,38 @@
     // Push the view controller.
     // [self.navigationController pushViewController:detailViewController animated:YES];
     
-    if (self.selectOne) {
-        NSString *symbol = [[NSString alloc] init];
-        if (indexPath.row == 0) {
-            NSLog(@"Selected stock: NONE");
-            symbol = @"NONE";
+    if (tableView != self.searchDisplayController.searchResultsTableView) {
+        if (self.selectOne) {
+            NSString *symbol = [[NSString alloc] init];
+            if (indexPath.row == 0) {
+                NSLog(@"Selected stock: None");
+                symbol = @"None";
+            } else {
+                StockInfo *aktie = [aktien objectAtIndex:(indexPath.row - 1)];
+                NSLog(@"Selected stock: %@ - %@", aktie.symbol, aktie.name);
+                symbol = aktie.symbol;
+            }
+            selectedSymbol = symbol;
+            NSLog(@"Check!");
+            [[self.delegate.slots objectAtIndex:(self.pressedSlot -1)] setTitle:symbol forState:UIControlStateNormal];
+            [self.tableView reloadData];
         } else {
-            StockInfo *aktie = [aktien objectAtIndex:(indexPath.row - 1)];
-            NSLog(@"Selected stock: %@ - %@", aktie.symbol, aktie.name);
-            symbol = aktie.symbol;
+            StockInfo *aktie = [aktien objectAtIndex:indexPath.row];
+            NSLog(@"Tapped stock: %@ - %@", aktie.symbol, aktie.name);
         }
-        selectedRow = indexPath.row;
-        NSLog(@"Check!");
-        [[self.delegate.slots objectAtIndex:(self.pressedSlot -1)] setTitle:symbol forState:UIControlStateNormal];
-        [self.tableView reloadData];
     } else {
-        StockInfo *aktie = [aktien objectAtIndex:indexPath.row];
-        NSLog(@"Tapped stock: %@ - %@", aktie.symbol, aktie.name);
+        if (self.selectOne) {
+            StockInfo *aktie = [self.filteredStockList objectAtIndex:indexPath.row];
+            NSString *symbol = aktie.symbol;
+            selectedSymbol = symbol;
+            NSLog(@"Check!");
+            NSLog(@"Tapped stock: %@ - %@", aktie.symbol, aktie.name);
+            [[self.delegate.slots objectAtIndex:(self.pressedSlot -1)] setTitle:symbol forState:UIControlStateNormal];
+            [tableView reloadData];
+        } else {
+            StockInfo *aktie = [self.filteredStockList objectAtIndex:indexPath.row];
+            NSLog(@"Tapped stock: %@ - %@", aktie.symbol, aktie.name);
+        }
     }
 }
  
@@ -283,6 +315,36 @@
     return [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject];
 }
 
+#pragma mark Content Filtering
+-(void)filterContentForSearchText:(NSString*)searchText scope:(NSString*)scope {
+    // Update the filtered array based on the search text and scope.
+    // Remove all objects from the filtered search array
+    [self.filteredStockList removeAllObjects];
+    // Filter the array using NSPredicate
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(SELF.symbol contains[c] %@) OR (SELF.name contains[c] %@)",searchText,searchText];
+    self.filteredStockList = [NSMutableArray arrayWithArray:[aktien filteredArrayUsingPredicate:predicate]];
+    NSLog(@"Searching ...");
+}
 
+#pragma mark - UISearchDisplayController Delegate Methods
+-(BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString {
+    // Tells the table data source to reload when text changes
+    [self filterContentForSearchText:searchString scope:
+     [[self.searchDisplayController.searchBar scopeButtonTitles] objectAtIndex:[self.searchDisplayController.searchBar selectedScopeButtonIndex]]];
+    // Return YES to cause the search result table view to be reloaded.
+    return YES;
+}
+
+-(BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchScope:(NSInteger)searchOption {
+    // Tells the table data source to reload when scope bar selection changes
+    [self filterContentForSearchText:self.searchDisplayController.searchBar.text scope:
+     [[self.searchDisplayController.searchBar scopeButtonTitles] objectAtIndex:searchOption]];
+    // Return YES to cause the search result table view to be reloaded.
+    return YES;
+}
+
+- (void)searchDisplayControllerDidEndSearch:(UISearchDisplayController *)controller {
+    [self.tableView reloadData];
+}
 
 @end
