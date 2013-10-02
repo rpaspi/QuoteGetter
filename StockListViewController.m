@@ -11,6 +11,7 @@
 
 @interface StockListViewController () {
     NSArray *aktien;
+    NSMutableArray *aktienSymbole;
     NSInteger selectedRow;
     NSString *selectedSymbol;
 }
@@ -55,6 +56,10 @@
     [fetchRequest setEntity:entity];
     NSError *error;
     aktien = [self.managedObjectContext executeFetchRequest:fetchRequest error:&error];
+    aktienSymbole = [NSMutableArray arrayWithCapacity:[aktien count]];
+    for (StockInfo *aktie in aktien) {
+        [aktienSymbole addObject:aktie.symbol];
+    }
     if (self.selectOne) {
         UIButton *pressedButton = self.delegate.slots[self.pressedSlot-1];
         NSString *preselectedSymbol = pressedButton.currentTitle;
@@ -230,6 +235,7 @@
             NSLog(@"Tapped stock: %@ - %@", aktie.symbol, aktie.name);
         }
     }
+    [self.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
 }
  
 
@@ -345,6 +351,9 @@
 
 - (void)searchDisplayControllerDidEndSearch:(UISearchDisplayController *)controller {
     [self.tableView reloadData];
+    NSUInteger row = [aktienSymbole indexOfObject:selectedSymbol];
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:row inSection:0];
+    [self.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionMiddle animated:NO];
 }
 
 @end
